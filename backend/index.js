@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { google } = require("googleapis");
 require("dotenv").config();
+const dbLogger = require("./utils/db_logger");
 
 const app = express();
 app.use(cors());
@@ -35,9 +36,11 @@ app.get("/oauth2callback", async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
     console.log("\n✅ ACCESS TOKEN:", tokens.access_token);
     console.log("🔁 REFRESH TOKEN:", tokens.refresh_token);
+    dbLogger.info("Tokens received", { tokens });
     res.send("✅ Tokens received — check your terminal and save them to .env.");
   } catch (error) {
     console.error("❌ Error getting tokens:", error);
+    dbLogger.error("Error getting tokens", { error });
     res.status(500).send("Error retrieving access token.");
   }
 });
@@ -65,9 +68,11 @@ app.get("/api/youtube/video/:id", async (req, res) => {
       return res.status(404).json({ error: "Video not found" });
     }
 
+    dbLogger.info("Video details fetched", { videoId });
     res.json(response.data.items[0]);
   } catch (err) {
     console.error("YouTube API error:", err.message);
+    dbLogger.error("YouTube API error", { error: err.message });
     res.status(500).json({ error: "Failed to fetch video details" });
   }
 });
@@ -108,9 +113,11 @@ app.put("/api/youtube/video/:id", async (req, res) => {
       },
     });
 
+    dbLogger.info("Video updated successfully", { videoId });
     res.json({ message: "Video updated successfully", data: response.data });
   } catch (err) {
     console.error("Error updating video:", err.message);
+    dbLogger.error("Error updating video", { error: err.message });
     res.status(500).json({ error: "Failed to update video" });
   }
 });
@@ -132,9 +139,11 @@ app.get("/api/youtube/comments/:videoId", async (req, res) => {
       order: "relevance",
     });
 
+    dbLogger.info("Comments fetched successfully", { videoId });
     res.json(response.data.items);
   } catch (err) {
     console.error("Failed to fetch comments:", err.message);
+    dbLogger.error("Failed to fetch comments", { error: err.message });
     res.status(500).json({ error: "Failed to fetch comments" });
   }
 });
@@ -165,9 +174,11 @@ app.post("/api/youtube/video/:id/comment", async (req, res) => {
       },
     });
 
+    dbLogger.info("Comment added successfully", { videoId });
     res.json({ message: "Comment added", comment: response.data });
   } catch (err) {
     console.error("Error adding comment:", err.message);
+    dbLogger.error("Error adding comment", { error: err.message });
     res.status(500).json({ error: "Failed to add comment" });
   }
 });
@@ -194,9 +205,11 @@ app.post("/api/youtube/comment/:id/reply", async (req, res) => {
       },
     });
 
+    dbLogger.info("Reply posted successfully", { commentId });
     res.json({ message: "Reply posted", reply: response.data });
   } catch (err) {
     console.error("Error replying to comment:", err.message);
+    dbLogger.error("Error replying to comment", { error: err.message });
     res.status(500).json({ error: "Failed to reply" });
   }
 });
@@ -214,9 +227,11 @@ app.delete("/api/youtube/comment/:id", async (req, res) => {
 
     await youtube.comments.delete({ id: commentId });
 
+    dbLogger.info("Comment deleted successfully", { commentId });
     res.json({ message: "Comment deleted successfully" });
   } catch (err) {
     console.error("Error deleting comment:", err.message);
+    dbLogger.error("Error deleting comment", { error: err.message });
     res.status(500).json({ error: "Failed to delete comment" });
   }
 });
