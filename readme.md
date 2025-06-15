@@ -5,3 +5,21 @@ CREATE TABLE logs (
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+APIs
+
+GET /auth/google
+
+GET /oauth2callback
+
+GET /api/youtube/video/:id
+
+PUT /api/youtube/video/:id
+
+GET /api/youtube/comments/:videoId
+
+POST /api/youtube/video/:id/comment
+
+POST /api/youtube/comment/:id/reply
+
+DELETE /api/youtube/comment/:id
